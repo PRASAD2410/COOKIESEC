@@ -1,0 +1,401 @@
+/* ----------------------------------------------------------- Global Theme ----------------------------------------------------------- */
+:root {
+    --color-bg-dark: #0f1115;
+    --color-bg-card: #15181e;
+    --color-bg-elevated: #1d2129;
+    --color-text-light: #eef1f6;
+    --color-text-muted: #9aa2b2;
+    --color-primary: #2dd4ff;
+    --color-primary-faded: #2dd4ff33;
+    --color-safe: #00ff9d;
+    --color-good: #ffd561;
+    --color-risk: #ff4d4d;
+    --color-critical: #ff1a1a;
+    --radius: 14px;
+    --shadow: 0px 4px 20px rgba(0, 0, 0, 0.35);
+}
+/* ===== GLOBAL NEON UPGRADE ===== */
+
+/* Neon panel */
+.panel {
+    background: linear-gradient(145deg, #121418, #0e0f12);
+    border-radius: 18px;
+    padding: 28px;
+    border: 1px solid rgba(45, 212, 255, 0.15);
+    box-shadow:
+        0 0 18px rgba(45, 212, 255, 0.15),
+        inset 0 0 12px rgba(45, 212, 255, 0.05);
+    transition: 0.25s ease;
+}
+
+.panel:hover {
+    transform: translateY(-2px);
+    border-color: rgba(45, 212, 255, 0.35);
+    box-shadow:
+        0 0 24px rgba(45, 212, 255, 0.25),
+        inset 0 0 14px rgba(45, 212, 255, 0.07);
+}
+
+/* Section headings */
+.section-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #2dd4ff;
+    text-shadow: 0 0 12px rgba(45, 212, 255, 0.45);
+}
+
+
+/* ----------------------------------------------------------- Base ----------------------------------------------------------- */
+body {
+    font-family: "Inter", sans-serif;
+    background: var(--color-bg-dark);
+    margin: 0;
+    padding: 0;
+    color: var(--color-text-light);
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 35px;
+}
+
+/* ----------------------------------------------------------- Header ----------------------------------------------------------- */
+.header h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: 8px;
+    text-shadow: 0px 0px 15px rgba(45, 212, 255, 0.2);
+}
+
+.header p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+}
+
+/* ----------------------------------------------------------- URL Input Area ----------------------------------------------------------- */
+.input-section {
+    margin-top: 35px;
+    display: flex;
+    gap: 12px;
+}
+
+.input-section input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    border: 1px solid #2b2f36;
+    background: var(--color-bg-elevated);
+    color: white;
+    font-size: 1rem;
+    transition: 0.25s;
+}
+
+.input-section input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.input-section button {
+    background: var(--color-primary);
+    border: none;
+    padding: 14px 28px;
+    color: #000;
+    font-weight: 700;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.input-section button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #30e3ff;
+}
+
+.input-section button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------- Loading + Errors ----------------------------------------------------------- */
+.hidden {
+    display: none !important;
+}
+
+.loading-spinner {
+    text-align: center;
+    margin-top: 20px;
+    color: var(--color-primary);
+}
+
+.spinner {
+    width: 35px;
+    height: 35px;
+    margin: auto;
+    border-radius: 50%;
+    border: 4px solid #222;
+    border-top-color: var(--color-primary);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error-box {
+    background: rgba(255, 60, 60, 0.15);
+    border: 1px solid var(--color-risk);
+    padding: 12px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    margin-top: 15px;
+}
+
+/* ----------------------------------------------------------- Result Section ----------------------------------------------------------- */
+.results-section {
+    margin-top: 40px;
+}
+
+/* ----------------------------------------------------------- Score Summary Card ----------------------------------------------------------- */
+.summary-card {
+    background: linear-gradient(145deg, #13161c 0%, #0f1115 100%);
+    padding: 30px;
+    text-align: center;
+    border-radius: var(--radius);
+
+    /* Neon border + glow */
+    border: 1px solid rgba(45, 212, 255, 0.18);
+    box-shadow:
+        0 0 20px rgba(45, 212, 255, 0.15),
+        inset 0 0 12px rgba(45, 212, 255, 0.06);
+    transition: 0.25s ease;
+}
+
+/* On hover—subtle lift */
+.summary-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(45, 212, 255, 0.4);
+    box-shadow:
+        0 0 26px rgba(45, 212, 255, 0.25),
+        inset 0 0 16px rgba(45, 212, 255, 0.09);
+}
+
+
+.score-number {
+    font-size: 4rem;
+    font-weight: 900;
+    display: inline-block;
+}
+
+.score-excellent {
+    color: var(--color-safe);
+}
+
+.score-good {
+    color: var(--color-good);
+}
+
+.score-poor {
+    color: var(--color-risk);
+}
+
+.score-message {
+    margin-top: 8px;
+    font-size: 1.15rem;
+    color: var(--color-text-muted);
+}
+
+/* ----------------------------------------------------------- AI Security Summary Box ----------------------------------------------------------- */
+.ai-box {
+    background: linear-gradient(135deg, #13161c 0%, #0f1115 100%);
+    padding: 28px;
+    margin-top: 28px;
+    border-radius: 18px;
+
+    /* Neon border glow */
+    border: 1px solid rgba(45, 212, 255, 0.25);
+    box-shadow:
+        0 0 18px rgba(45, 212, 255, 0.15),
+        inset 0 0 12px rgba(45, 212, 255, 0.05);
+
+    /* Smooth text spacing */
+    line-height: 1.65;
+    font-size: 1.05rem;
+    transition: 0.25s ease;
+}
+
+/* Hover glow */
+.ai-box:hover {
+    box-shadow:
+        0 0 24px rgba(45, 212, 255, 0.25),
+        inset 0 0 14px rgba(45, 212, 255, 0.08);
+    border-color: rgba(45, 212, 255, 0.45);
+    transform: translateY(-2px);
+}
+
+
+.ai-box h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--color-primary);
+}
+
+/* ----------------------------------------------------------- Cookie List Grid ----------------------------------------------------------- */
+.cookies-title {
+    margin-top: 30px;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.cookie-list {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 25px;
+}
+
+/* ----------------------------------------------------------- Cookie Card ----------------------------------------------------------- */
+.cookie-card {
+    background: var(--color-bg-card);
+    padding: 22px;
+    border-radius: var(--radius);
+    position: relative;
+    box-shadow: var(--shadow);
+}
+
+/* Score indicator bubble */
+.cookie-score-indicator {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    padding: 10px 15px;
+    border-radius: 50px;
+    font-weight: 800;
+    color: #111;
+}
+
+.cookie-score-indicator.score-excellent {
+    background: var(--color-safe);
+}
+
+.cookie-score-indicator.score-good {
+    background: var(--color-good);
+}
+
+.cookie-score-indicator.score-poor {
+    background: var(--color-risk);
+}
+
+/* Cookie Header */
+.cookie-card-header h3 {
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.cookie-card-header .domain {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+}
+
+/* Category Badge */
+.category-badge {
+    display: inline-block;
+    background: var(--color-primary-faded);
+    color: var(--color-primary);
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-size: 0.85rem;
+}
+
+/* Description Text */
+.description-text {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+}
+
+/* Attribute Badges */
+.badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.badge-safe {
+    background: rgba(0, 255, 157, 0.15);
+    color: var(--color-safe);
+}
+
+.badge-risk {
+    background: rgba(255, 77, 77, 0.15);
+    color: var(--color-risk);
+}
+
+.badge-critical {
+    background: rgba(255, 0, 0, 0.2);
+    color: var(--color-critical);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(255, 0, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    }
+}
+
+/* Value Pattern Line */
+.value-pattern {
+    margin-top: 10px;
+    color: #7cd6ff;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Cookie Value Block */
+.cookie-value {
+    margin-top: 12px;
+    background: #1f222a;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.expand-button {
+    margin-top: 10px;
+    background: none;
+    border: 1px solid var(--color-primary);
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: var(--color-primary);
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: 0.2s;
+}
+
+.expand-button:hover {
+    background: var(--color-primary-faded);
+}
+
+/* ----------------------------------------------------------- Responsive ----------------------------------------------------------- */
+@media (max-width: 600px) {
+    .input-section {
+        flex-direction: column;
+    }
+}

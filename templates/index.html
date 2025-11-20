@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Security Analyzer</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ----------------------------------------------------------- GLOBAL AESTHETIC UPGRADES ----------------------------------------------------------- */
+        body {
+            /* Deeper, consistent dark background */
+            background-color: #0d0f13; 
+            color: #e2e8f0; 
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative; 
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 50px 25px;
+        }
+
+        /* ----------------------------------------------------------- COOKIESEC LOGO (Neon) ----------------------------------------------------------- */
+        .app-logo {
+            position: absolute;
+            top: 25px; 
+            left: 25px; 
+            display: flex;
+            align-items: center;
+            gap: 10px; 
+            text-decoration: none;
+        }
+
+        .app-logo .app-icon {
+            font-size: 28px;
+            filter: drop-shadow(0 0 5px rgba(0, 191, 255, 0.5)); 
+        }
+
+        .app-logo .app-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            color: #00BFFF; /* Neon blue */
+            letter-spacing: -0.5px; 
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.6); 
+        }
+
+        /* ----------------------------------------------------------- HEADER (Neon) ----------------------------------------------------------- */
+        .header {
+            text-align: center;
+            margin-bottom: 45px;
+            padding-top: 20px; 
+        }
+
+        .header h1 {
+            font-size: 3rem; 
+            font-weight: 800; 
+            margin-bottom: 8px;
+            color: #00BFFF; /* Neon blue */
+            text-shadow: 0 0 10px rgba(0, 191, 255, 0.8); 
+        }
+
+        .header p {
+            color: #aeb6c4; 
+            font-size: 1.05rem; 
+            margin: 0;
+        }
+
+        /* ----------------------------------------------------------- INPUT SECTION ----------------------------------------------------------- */
+        .input-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 12px; 
+            border: 1px solid #2a3038;
+            border-radius: 10px; 
+            padding: 12px; 
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #171a1f; 
+        }
+
+        .input-section input {
+            flex: 1;
+            max-width: 650px;
+            padding: 14px 18px; 
+            border-radius: 8px; 
+            background: #0f1217; 
+            border: 1px solid #00BFFF; /* Neon blue border */
+            color: #e2e8f0;
+            font-size: 1rem; 
+            transition: 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 191, 255, 0.4);
+        }
+
+        .input-section input:focus {
+            border-color: #00BFFF; 
+            background: #1a1e24; 
+            outline: none;
+            box-shadow: 0 0 12px rgba(0, 191, 255, 0.8); 
+        }
+
+        .input-section button {
+            padding: 14px 25px; 
+            border-radius: 8px; 
+            background: #007bff; 
+            color: white; 
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+        }
+
+        .input-section button:hover {
+            background: #0056b3; 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.8); 
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ----------------------------------------------------------- SCANNING BOX ----------------------------------------------------------- */
+        #loading {
+            margin-top: 50px;
+            text-align: center;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .scan-box {
+            width: 280px;
+            height: 180px;
+            margin: auto;
+            position: relative;
+            background: #171a1f;
+            border-radius: 12px;
+            border: 1px solid #00BFFF; 
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.6); 
+        }
+
+        .scan-cookie-img {
+            width: 80px; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 10px rgba(0, 191, 255, 0.8)); 
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 6px; 
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 191, 255, 0), #00BFFF, rgba(0, 191, 255, 0)); 
+            opacity: 0.8;
+            animation: scanMove 2s infinite cubic-bezier(0.8, 0.2, 0.2, 0.8);
+        }
+
+        @keyframes scanMove {
+            0% { left: -20px; }
+            100% { left: calc(100% + 20px); }
+        }
+
+        .scan-text {
+            font-size: 1.1rem;
+            margin-top: 20px;
+            color: #00BFFF; 
+            font-weight: 500;
+            text-shadow: 0 0 5px rgba(0, 191, 255, 0.4);
+        }
+
+        /* ----------------------------------------------------------- SUMMARY CARD (Simple White Score, Neon Border) ----------------------------------------------------------- */
+        .summary-card {
+            margin-top: 50px;
+            max-width: 500px; 
+            height: 200px; 
+            margin-left: auto;
+            margin-right: auto;
+            padding: 35px; 
+            background-color: #171a1f; 
+            border-radius: 10px; 
+            border: 1px solid #00BFFF; /* Neon blue border */
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.5); /* Neon box shadow */
+            display: flex; 
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .summary-card h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 15px; 
+            color: #00BFFF; /* Neon blue */
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: 0;
+            line-height: 1; 
+        }
+
+        /* Overall Score Number (Simple White - MATCHING IMAGE 2 EXACTLY) */
+        .score-number {
+            font-family: 'Inter', sans-serif; 
+            font-size: 5rem; 
+            font-weight: 800; 
+            line-height: 1;
+            margin-right: 5px;
+            color: #f8f9fa; /* Pure white */
+            -webkit-text-stroke: none; 
+            text-shadow: none; 
+        }
+        
+        .score-display span:last-child {
+            font-family: 'Inter', sans-serif; 
+            font-size: 2rem; 
+            font-weight: 700;
+            align-self: flex-start;
+            color: #aeb6c4; /* Soft white/gray */
+            text-shadow: none; 
+            margin-top: 10px; 
+        }
+
+        /* Overall Score Color Classes (REVERTED TO SIMPLICITY) */
+        .score-excellent-overall, .score-good-overall, .score-poor-overall { 
+            color: #f8f9fa !important; 
+            -webkit-text-stroke-color: transparent !important; 
+            text-shadow: none !important; 
+        }
+
+        /* Cookie Card Score Indicator Colors (original, distinct backgrounds) */
+        .cookie-score-indicator.score-excellent { background: #00d77a; color: #111; } 
+        .cookie-score-indicator.score-good { background: #ffd561; color: #111; } 
+        .cookie-score-indicator.score-poor { background: #ff5f5f; color: #111; } 
+
+        /* ----------------------------------------------------------- AI BOX (Neon) ----------------------------------------------------------- */
+        .ai-box {
+            background: linear-gradient(145deg, #171a1f, #121418);
+            padding: 30px; 
+            margin-top: 50px;
+            border-radius: 12px; 
+            white-space: pre-line;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid #00BFFF; 
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-box::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 70%; 
+            height: 2px; 
+            background: radial-gradient(circle, #00BFFF, transparent); 
+            transform: translateX(-50%);
+            opacity: 0.6; 
+        }
+
+        .ai-box h2 {
+            margin-bottom: 20px;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #00BFFF; 
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.6); 
+        }
+
+        .ai-box p {
+            font-size: 1.05rem;
+            color: #e2e8f0; 
+        }
+
+        #download-btn {
+            padding: 12px 22px; 
+            border-radius: 8px; 
+            background: #007bff;
+        }
+
+        #download-btn:hover {
+            background: #0056b3;
+        }
+
+        /* ----------------------------------------------------------- DETAILED COOKIE REPORT TILES (MATCHED EXACTLY & FIXED OVERLAP) ----------------------------------------------------------- */
+        .detailed-report-header {
+            margin-top: 50px;
+            margin-bottom: 30px;
+            font-size: 1.9rem; 
+            font-weight: 700;
+            color: #00BFFF; 
+            text-shadow: 0 0 8px rgba(0, 191, 255, 0.6);
+            border-bottom: 1px solid #2a3038; 
+            padding-bottom: 10px;
+        }
+
+        .cookie-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            gap: 20px; 
+            padding-bottom: 50px;
+        }
+
+        .cookie-card {
+            background: #171a1f; 
+            padding: 22px; 
+            border-radius: 10px; 
+            border: 1px solid #2a3038; 
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); 
+            min-height: 220px; 
+        }
+        
+        .cookie-card:hover {
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3); 
+        }
+
+        .cookie-card h3 {
+            font-size: 1.4rem; 
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 8px; 
+            color: #f8f9fa; 
+            margin-right: 60px; /* FIXED OVERLAP */
+            word-wrap: break-word; 
+        }
+
+        .cookie-score-indicator {
+            position: absolute;
+            top: 10px; 
+            right: 10px; 
+            padding: 8px 14px; 
+            border-radius: 50%;
+            font-weight: 800;
+            color: #111;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem; 
+            min-width: 40px; 
+            text-align: center;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .domain {
+            font-size: 0.85rem;
+            color: #aeb6c4; 
+            display: block;
+            margin-bottom: 8px; 
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 4px 10px; 
+            background: #2a3038; 
+            color: #8ab4f8; 
+            border-radius: 8px; 
+            margin: 5px 0 12px 0; 
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid #3c444f; 
+        }
+
+        .cookie-card p {
+            margin-top: 0;
+            margin-bottom: 12px; 
+            font-size: 1rem; 
+            font-weight: 500;
+            color: #f8f9fa; /* RESTORED: White/Off-white font color */
+            line-height: 1.5;
+        }
+        
+        /* Flag Badges: MATCHED EXACTLY (Green/Red text on green/red background) */
+        .badge {
+            /* Adjusted padding to match the visible background box */
+            padding: 4px 8px; 
+            border-radius: 5px; 
+            font-size: 0.85rem; 
+            font-weight: 600;
+            margin-right: 15px; 
+            margin-bottom: 15px; 
+            display: inline-block;
+            white-space: nowrap;
+            text-shadow: none; /* No shadow */
+            border: none; /* No extra border */
+        }
+
+        .badge-safe { 
+            /* Green text on a slightly darker green background */
+            color: #00d77a; 
+            background: #00d77a1A; /* Subtle green background */
+        } 
+        .badge-risk { 
+            /* Red text on a slightly darker red/yellow background */
+            color: #ff5f5f; 
+            background: #ff5f5f1A; /* Subtle red background */
+        } 
+        .badge-critical { 
+            color: #ff5f5f; 
+            background: #ff5f5f1A; 
+        } 
+
+        .value-pattern {
+            margin-top: 15px; 
+            font-size: 0.9rem; 
+            color: #8ab4f8; 
+            font-style: italic;
+            padding-top: 10px;
+            border-top: 1px dashed #3c444f; 
+            text-shadow: none; 
+        }
+
+        .error-box {
+            background: #dc35451a; 
+            border: 1px solid #dc3545;
+            color: #dc3545;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+
+<a href="#" class="app-logo">
+    <span class="app-icon">🍪</span> 
+    <span class="app-name">CookieSec</span>
+</a>
+
+<div class="container">
+
+    <header class="header">
+        <h1>Cookie Security Analyzer</h1>
+        <p>Analyze cookie flags, risk indicators & security posture.</p>
+    </header>
+
+    <section class="input-section">
+        <input type="url" id="urlInput" placeholder="Enter URL (https://example.com) to start scanning...">
+        <button onclick="startScan()">Scan</button>
+    </section>
+
+    <div id="loading" class="hidden">
+        <div class="scan-box">
+            <img class="scan-cookie-img" src="https://cdn-icons-png.flaticon.com/512/1047/1047711.png" alt="Cookie Icon">
+            <div class="scan-line"></div>
+        </div>
+        <p class="scan-text">Scanning cookies…</p>
+    </div>
+
+    <div id="errorBox" class="error-box hidden"></div>
+
+    <section id="resultsSection" class="hidden">
+
+        <div class="summary-card">
+            <h2>Overall Security Score</h2>
+            <div class="score-display">
+                <span id="averageScore" class="score-number"></span>
+                <span>/10</span>
+            </div>
+        </div>
+
+        <div class="ai-box">
+            <h2>AI Security Summary</h2>
+            <p id="aiSummary">Loading...</p>
+            <button id="download-btn">Download Report (PDF)</button>
+        </div>
+
+        <h2 class="detailed-report-header">Detailed Cookie Report (<span id="cookieCount">0</span>)</h2>
+
+        <div id="cookieList" class="cookie-list"></div>
+    </section>
+</div>
+
+<script>
+// ... (Your JavaScript remains unchanged)
+document.getElementById("download-btn").addEventListener("click", async () => {
+    const response = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            url: window.lastScannedURL,
+            score: window.lastScore,
+            aiSummary: window.lastAISummary,
+            cookies: window.lastCookies
+        })
+    });
+
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = "cookie_security_report.pdf";
+    link.click();
+});
+
+async function startScan() {
+    const url = document.getElementById("urlInput").value.trim();
+    const err = document.getElementById("errorBox");
+    const results = document.getElementById("resultsSection");
+    const loading = document.getElementById("loading");
+    const scoreElement = document.getElementById("averageScore");
+
+    err.classList.add("hidden");
+    results.classList.add("hidden");
+
+    loading.classList.remove("hidden");
+
+    if (!url.startsWith("http")) {
+        loading.classList.add("hidden");
+        err.textContent = "Enter valid URL starting with http(s)://";
+        err.classList.remove("hidden");
+        return;
+    }
+
+    const res = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url })
+    });
+
+    const data = await res.json();
+
+    loading.classList.add("hidden");
+
+    if (data.error) {
+        err.textContent = data.error;
+        err.classList.remove("hidden");
+        return;
+    }
+
+    results.classList.remove("hidden");
+
+    window.lastScannedURL = url;
+    window.lastScore = data.average_score;
+    window.lastAISummary = data.ai_summary;
+    window.lastCookies = data.cookies;
+
+    scoreElement.classList.remove("score-excellent-overall", "score-good-overall", "score-poor-overall");
+    scoreElement.classList.add(getScoreClass(data.average_score, true)); 
+    scoreElement.textContent = data.average_score.toFixed(1);
+
+    document.getElementById("aiSummary").innerHTML =
+        data.ai_summary.replace(/•/g, "<br>•").replace(/\n/g, "<br>");
+    document.getElementById("cookieCount").textContent = data.cookies.length;
+
+    const cookieList = document.getElementById("cookieList");
+    cookieList.innerHTML = "";
+
+    data.cookies.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "cookie-card";
+
+        div.innerHTML = `
+            <div class="cookie-score-indicator ${getScoreClass(c.security_score)}">${c.security_score}</div>
+            <h3>${c.name}</h3>
+            <span class="domain">${c.domain}</span>
+
+            <div class="category-badge">${c.category}</div>
+            <p>${c.description}</p>
+
+            <span class="badge ${c.HttpOnly ? "badge-safe" : "badge-risk"}">HttpOnly: ${c.HttpOnly ? "YES" : "NO"}</span>
+            <span class="badge ${c.Secure ? "badge-safe" : "badge-risk"}">Secure: ${c.Secure ? "YES" : "NO"}</span>
+            <span class="badge ${c.SameSite && c.SameSite !== "None" ? "badge-safe" : "badge-risk"}">SameSite: ${c.SameSite || "NO"}</span>
+
+            ${c.Sensitive_Leak ? `<span class="badge badge-critical">Sensitive Data Leak!</span>` : ""}
+
+            <p class="value-pattern">${c.value_pattern}</p>
+        `;
+
+        cookieList.appendChild(div);
+    });
+}
+
+function getScoreClass(score, isOverall = false) {
+    if (score >= 8) return isOverall ? "score-excellent-overall" : "score-excellent";
+    if (score >= 5) return isOverall ? "score-good-overall" : "score-good";
+    return isOverall ? "score-poor-overall" : "score-poor";
+}
+</script>
+
+</body>
+</html>
