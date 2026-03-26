@@ -20,6 +20,13 @@ const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 
 const router = express.Router();
+const path = require('path');
+
+//dasboard route
+router.get("/dashboard", (req, res) => {
+      res.sendFile(path.join(__dirname, '../frontend/templates/dashboard.html'));
+});
+
 
 // POST /api/scan - Main cookie scanning endpoint
 router.post('/api/scan', async (req, res) => {
