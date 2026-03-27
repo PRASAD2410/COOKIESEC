@@ -28,11 +28,13 @@ async function fetchCookiesWithPuppeteer(url) {
         // Set viewport
         await page.setViewport({ width: 1280, height: 720 });
 
-        // Set timeout
-        page.setDefaultTimeout(30000);
-        page.setDefaultNavigationTimeout(30000);
+        // Set timeout - increased from 30s to handle large URLs
+        // Use 120 seconds (2 minutes) for large/slow websites
+        const TIMEOUT_MS = 120000;
+        page.setDefaultTimeout(TIMEOUT_MS);
+        page.setDefaultNavigationTimeout(TIMEOUT_MS);
 
-        console.log(`⏳ Navigating to page...`);
+        console.log(`⏳ Navigating to page (timeout: 120s)...`);
         await page.goto(url, { waitUntil: 'networkidle0' });
 
         // Scroll multiple times to trigger all lazy-loaded scripts
@@ -55,7 +57,7 @@ async function fetchCookiesWithPuppeteer(url) {
             return { error: 'Invalid URL format.' };
         }
         if (error.message.includes('Timeout')) {
-            return { error: 'Page load timed out.' };
+            return { error: 'Page load timed out (120s). The website may be very large or slow to respond. Try a different URL.' };
         }
         return { error: `Driver error: ${error.message}` };
     } finally {

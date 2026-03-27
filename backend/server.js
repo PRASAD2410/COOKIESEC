@@ -20,6 +20,7 @@ const frontendDistPath = path.join(__dirname, "../react_frontend/dist");
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ limit: '50mb' }));
 app.use('/static', express.static(path.join(__dirname, '../react_frontend/src/static')));
 app.use(express.static(frontendDistPath));
 
@@ -49,8 +50,14 @@ const server = app.listen(PORT, () => {
     console.log(`║     - GET  /api/cache-stats                       ║`);
     console.log(`║     - POST /api/cache-clear                       ║`);
     console.log(`║     - GET  /api/test-openrouter                   ║`);
+    console.log(`║   Timeout: 130s (for large URLs)                  ║`);
     console.log(`╚════════════════════════════════════════════════════╝\n`);
 });
+
+// Set server timeout to 130 seconds (130000ms) to handle large URLs
+// Puppeteer timeout is 120s, so server needs to be slightly higher
+server.setTimeout(130000);
+server.keepAliveTimeout = 65000;
 
 // Handle port already in use error
 server.on('error', (err) => {
