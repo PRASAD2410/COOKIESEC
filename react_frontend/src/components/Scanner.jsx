@@ -138,18 +138,22 @@ function Scanner() {
               <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
                 <SummaryCard score={data.average_score ?? 0} />
 
-                <div className="rounded-3xl border border-cyan-400/20 bg-slate-950/80 p-8 shadow-[0_0_30px_rgba(45,212,255,0.08)]">
-                  <h2 className="text-lg font-semibold tracking-wide text-cyan-300">
-                    AI Security Summary
-                  </h2>
-                  <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-200">
-                    {data.ai_summary || "No summary available."}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleDownload}
-                    className="mt-6 inline-flex rounded-full bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-400"
-                  >
+                <div className="rounded-3xl border border-cyan-400/20 bg-slate-900/60 backdrop-blur-xl p-8 shadow-[0_0_40px_rgba(45,212,255,0.12)] h-96 flex flex-col">
+
+  <h2 className="text-lg font-semibold tracking-wide text-cyan-300">
+    AI Security Summary
+  </h2>
+
+  <div className="mt-4 text-sm leading-7 text-slate-200 overflow-y-auto flex-1 pr-3 custom-scroll">
+    {data.ai_summary || "No summary available."}
+  </div>
+
+  <button
+    type="button"
+    onClick={handleDownload}
+    className="mt-6 inline-flex items-center justify-center rounded-full bg-linear-to-r from-blue-500 to-cyan-400 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:scale-105 hover:shadow-cyan-400/30"
+  >
+ 
                     Download Report
                   </button>
                 </div>
