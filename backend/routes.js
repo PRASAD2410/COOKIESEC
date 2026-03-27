@@ -123,9 +123,26 @@ router.post('/download', (req, res) => {
 
     // AI Summary
     doc.fontSize(14).font('Helvetica-Bold').text('AI Security Summary');
-    doc.fontSize(10)
-        .font('Helvetica')
-        .text(aiSummary);
+    doc.moveDown(0.5);
+    
+    const cleanedSummary = aiSummary.replace(/&nbsp;/g, ' ').trim();
+    const summaryLines = cleanedSummary.split('\n');
+    
+    summaryLines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed === '') {
+            // Skip empty lines
+            return;
+        } else if (trimmed.startsWith('=')) {
+            // Separator line with extra spacing
+            doc.fontSize(9).font('Helvetica').text(trimmed);
+            doc.moveDown(0.3);
+        } else {
+            doc.fontSize(10).font('Helvetica').text(trimmed);
+            doc.moveDown(0.2);
+        }
+    });
+    
     doc.moveDown();
 
     // Cookies

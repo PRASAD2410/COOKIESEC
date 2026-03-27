@@ -201,7 +201,12 @@ ${JSON.stringify(safeList, null, 2)}
             }
         });
         
-        const summary = response.data.choices[0].message.content;
+        let summary = response.data.choices[0].message.content;
+        
+        // Clean up &nbsp; entities and excessive whitespace
+        summary = summary.replace(/&nbsp;/g, ' ');
+        summary = summary.replace(/\n\s*\n\s*\n/g, '\n\n'); // Remove triple+ line breaks
+        summary = summary.trim();
         
         // Cache the response in Redis
         await redisSet(cacheKey, summary, REDIS_CACHE_TTL_SUMMARY);

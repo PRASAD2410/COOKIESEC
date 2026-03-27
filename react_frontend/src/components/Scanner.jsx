@@ -145,7 +145,26 @@ function Scanner() {
   </h2>
 
   <div className="mt-4 text-sm leading-relaxed text-slate-200 overflow-y-auto flex-1 pr-3 custom-scroll font-mono whitespace-pre-wrap break-words">
-    {data.ai_summary || "No summary available."}
+    {(data.ai_summary || "No summary available.")
+      .replace(/&nbsp;/g, ' ')
+      .split('\n')
+      .map((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed === '') return null;
+        if (trimmed.startsWith('=')) {
+          return (
+            <div key={index} className="my-3 text-cyan-400/60 tracking-wider">
+              {trimmed}
+            </div>
+          );
+        }
+        return (
+          <div key={index} className="mb-2">
+            {line}
+          </div>
+        );
+      })
+      .filter(Boolean)}
   </div>
 
   <button
