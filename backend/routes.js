@@ -22,14 +22,10 @@ const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const router = express.Router();
 const path = require('path');
 
-//dasboard route
-router.get("/dashboard", (req, res) => {
-      res.sendFile(path.join(__dirname, '../frontend/templates/dashboard.html'));
-});
 
 
 // POST /api/scan - Main cookie scanning endpoint
-router.post('/api/scan', async (req, res) => {
+router.post('/scan', async (req, res) => {
     const { url } = req.body;
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -101,7 +97,7 @@ router.post('/api/scan', async (req, res) => {
 });
 
 // POST /api/download - Generate PDF report
-router.post('/api/download', (req, res) => {
+router.post('/download', (req, res) => {
     const { url, score, aiSummary, cookies } = req.body;
 
     const doc = new PDFDocument();

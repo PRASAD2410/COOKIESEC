@@ -15,25 +15,24 @@ const routes = require('./routes');
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
+const frontendDistPath = path.join(__dirname, "../react_frontend/dist");
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/static', express.static(path.join(__dirname, '../frontend/static')));
+app.use('/static', express.static(path.join(__dirname, '../react_frontend/src/static')));
+app.use(express.static(frontendDistPath));
 
-// Routes
-app.use(routes);
+
 
 // Health check / frontend
 
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/templates/index.html'));
+app.use('/api', routes);
+app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
 });
 
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/templates/dashboard.html'));
-});
 
 // ======================================================================
 //  START SERVER
