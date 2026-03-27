@@ -87,6 +87,151 @@ function detectValuePattern(value) {
     return 'No recognizable pattern detected.';
 }
 
+// ======================================================================
+// INTELLIGENT FLAG REQUIREMENTS DETECTION
+// ======================================================================
+// Determines which security flags are actually NEEDED for each cookie
+// based on its purpose, sensitivity, and value type
+
+function determineFlagRequirements(cookie, category, valuePattern) {
+    const name = (cookie.name || '').toLowerCase();
+    const value = (cookie.value || '').toString().toLowerCase();
+    
+    // Detect if cookie contains sensitive data
+    const sensitiveKeywords = ['password', 'token', 'auth', 'secret', 'api', 'user', 'jwt', 'bearer'];
+    const isSensitive = sensitiveKeywords.some(k => value.includes(k) || name.includes(k));
+    
+    // Detect value sensitivity
+    const isHighEntropy = (cookie.value || '').length > 40;
+    const isToken = valuePattern.includes('token') || valuePattern.includes('JWT');
+
+    // Detect if this is a cross-site tracking cookie (Google/YouTube pattern)
+    const isGoogleTracking = name.includes('visitor') || name.includes('gps') || 
+                             name.includes('_ga') || name.includes('_gid');
+    const isGoogleAuth = name.includes('ynid') || name.includes('rollout') || 
+                         name.includes('ysc') || name.includes('__secure');
+
+    const requirements = {
+        requireHttpOnly: false,
+        requireSecure: false,
+        requireSameSite: false,
+        isJustified: false, // True if omission is justified; False if intentional trade-off
+        reasoning: {
+            httpOnly: '',
+            secure: '',
+            sameSite: ''
+        }
+    };
+
+    // ===== SESSION & AUTH COOKIES (Critical - All flags recommended) =====
+    if (category.includes('Session') || category.includes('Auth') || category.includes('Security / Auth')) {
+        requirements.requireHttpOnly = true;
+        requirements.reasoning.httpOnly = 'Session/Auth cookies contain sensitive session data; HttpOnly prevents XSS theft.';
+        
+        requirements.requireSecure = true;
+        requirements.reasoning.secure = 'Session/Auth cookies must be HTTPS-only to prevent man-in-the-middle interception.';
+        
+        requirements.requireSameSite = true;
+        requirements.reasoning.sameSite = 'Session/Auth cookies should have SameSite to prevent CSRF attacks.';
+        
+        requirements.isJustified = false; // Auth cookies should ALWAYS have these flags
+    }
+
+    // ===== GOOGLE AUTH COOKIES (Session/Auth) - Check if intentionally omitted for cross-domain auth =====
+    else if (isGoogleAuth) {
+        requirements.requireHttpOnly = true;
+        requirements.reasoning.httpOnly = 'Auth token: HttpOnly prevents XSS-based theft.';
+        
+        requirements.requireSecure = true;
+        requirements.reasoning.secure = 'Auth token: HTTPS-only prevents interception.';
+        
+        requirements.requireSameSite = true;
+        requirements.reasoning.sameSite = 'Auth token: SameSite prevents CSRF attacks. OFTEN OMITTED by Google for cross-domain auth flow.';
+        
+        // Mark as intentional trade-off (Google omits SameSite to work across youtube.com, google.com, etc)
+        requirements.isJustified = false;
+    }
+
+    // ===== CLOUDFLARE SECURITY COOKIES =====
+    else if (category.includes('Cloudflare')) {
+        requirements.requireHttpOnly = false;
+        requirements.reasoning.httpOnly = 'Cloudflare cookies are CDN-managed; HttpOnly is optional for these.';
+        
+        requirements.requireSecure = true;
+        requirements.reasoning.secure = 'Cloudflare security cookies should use HTTPS to prevent tampering.';
+        
+        requirements.requireSameSite = false;
+        requirements.reasoning.sameSite = 'Cloudflare cookies may intentionally omit SameSite for cross-site compatibility.';
+        
+        requirements.isJustified = true; // CDN cookies are justified to omit SameSite
+    }
+
+    // ===== GOOGLE TRACKING COOKIES (Cross-site tracking) =====
+    else if (isGoogleTracking) {
+        requirements.requireHttpOnly = false;
+        requirements.reasoning.httpOnly = 'Tracking cookie with non-sensitive UUID; HttpOnly not required.';
+        
+        requirements.requireSecure = false;
+        requirements.reasoning.secure = 'Tracking cookie; Secure not strictly required but recommended.';
+        
+        requirements.requireSameSite = false;
+        requirements.reasoning.sameSite = 'INTENTIONALLY OMITTED: SameSite=None needed for Google tracking across sites. Trade-off: Tracking vs CSRF protection.';
+        
+        // Mark as intentional (Google deliberately omits SameSite for cross-site tracking to work)
+        requirements.isJustified = false; // Not justified, but intentional for business reasons
+    }
+
+    // ===== ANALYTICS & TRACKING COOKIES =====
+    else if (category.includes('Analytics') || category.includes('Tracking')) {
+        requirements.requireHttpOnly = false;
+        requirements.reasoning.httpOnly = 'Analytics cookies contain non-sensitive IDs; HttpOnly not required.';
+        
+        requirements.requireSecure = isSensitive;
+        requirements.reasoning.secure = isSensitive 
+            ? 'This analytics cookie appears sensitive; Secure flag recommended.'
+            : 'Analytics cookies are not sensitive; Secure flag is optional.';
+        
+        // For generic analytics: SameSite prevents tracking abuse
+        // But big tech often omits it intentionally
+        requirements.requireSameSite = true;
+        requirements.reasoning.sameSite = 'Analytics should have SameSite to limit cross-site tracking, but often omitted intentionally.';
+        
+        requirements.isJustified = false; // Intentional omission for tracking purposes
+    }
+
+    // ===== MISCELLANEOUS / UNKNOWN COOKIES =====
+    else {
+        // For unknown cookies, check the actual data
+        if (isToken || isHighEntropy || isSensitive) {
+            // Looks like it contains sensitive data
+            requirements.requireHttpOnly = true;
+            requirements.reasoning.httpOnly = 'Cookie appears to contain a token/sensitive data; HttpOnly recommended.';
+            
+            requirements.requireSecure = true;
+            requirements.reasoning.secure = 'Cookie appears sensitive; Secure flag recommended.';
+            
+            requirements.requireSameSite = true;
+            requirements.reasoning.sameSite = 'Cookie appears sensitive; SameSite recommended.';
+            
+            requirements.isJustified = false;
+        } else {
+            // Low-sensitivity cookie (e.g., simple UUID or preference)
+            requirements.requireHttpOnly = false;
+            requirements.reasoning.httpOnly = 'Cookie appears non-sensitive; HttpOnly is optional.';
+            
+            requirements.requireSecure = false;
+            requirements.reasoning.secure = 'Cookie appears non-sensitive; Secure is optional.';
+            
+            requirements.requireSameSite = false;
+            requirements.reasoning.sameSite = 'Cookie appears non-sensitive; SameSite is optional.';
+            
+            requirements.isJustified = true; // Truly not needed
+        }
+    }
+
+    return requirements;
+}
+
 function scoreCookieWithSpec(cookie, spec) {
     const [category, description] = classifyCookie(cookie);
     cookie.category = category;
@@ -102,6 +247,10 @@ function scoreCookieWithSpec(cookie, spec) {
     cookie.HttpOnly = !!rawHttpOnly;
     cookie.Secure = !!rawSecure;
     cookie.SameSite = !['', 'none'].includes(rawSameSite);
+
+    // Get intelligent flag requirements based on cookie type
+    const flagRequirements = determineFlagRequirements(cookie, category, cookie.value_pattern);
+    cookie.flagRequirements = flagRequirements;
 
     if (spec) {
         // Compare with spec (if available)
@@ -119,14 +268,33 @@ function scoreCookieWithSpec(cookie, spec) {
         
         console.log(`✓ ${cookie.name}: Using spec - score ${score}`);
     } else {
-        // No spec available - use standard security practices
-        if (!cookie.HttpOnly) score -= 2;
-        if (!cookie.Secure) score -= 2;
-        if (!cookie.SameSite) score -= 2;
+        // No spec available - use intelligent flag requirement detection
+        // Only penalize if flag is actually REQUIRED for this cookie type
+        
+        if (flagRequirements.requireHttpOnly && !cookie.HttpOnly) {
+            score -= 2;
+            cookie.httpOnly_penalty = flagRequirements.reasoning.httpOnly;
+        } else if (!flagRequirements.requireHttpOnly && !cookie.HttpOnly) {
+            cookie.httpOnly_penalty = null; // No penalty - flag not required
+        }
+
+        if (flagRequirements.requireSecure && !cookie.Secure) {
+            score -= 2;
+            cookie.secure_penalty = flagRequirements.reasoning.secure;
+        } else if (!flagRequirements.requireSecure && !cookie.Secure) {
+            cookie.secure_penalty = null; // No penalty - flag not required
+        }
+
+        if (flagRequirements.requireSameSite && !cookie.SameSite) {
+            score -= 2;
+            cookie.sameSite_penalty = flagRequirements.reasoning.sameSite;
+        } else if (!flagRequirements.requireSameSite && !cookie.SameSite) {
+            cookie.sameSite_penalty = null; // No penalty - flag not required
+        }
         
         cookie.hasSpec = false;
-        cookie.specReason = "Using standard security scoring";
-        console.log(`✓ ${cookie.name}: Score ${score}`);
+        cookie.specReason = "Using intelligent flag requirement analysis";
+        console.log(`✓ ${cookie.name}: Using intelligent analysis - score ${score}`);
     }
 
     const sensitiveKeywords = ['password', 'token', 'auth', 'secret', 'api', 'user'];
@@ -144,5 +312,6 @@ function scoreCookieWithSpec(cookie, spec) {
 module.exports = {
     classifyCookie,
     detectValuePattern,
+    determineFlagRequirements,
     scoreCookieWithSpec
 };

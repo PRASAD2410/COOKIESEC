@@ -19,9 +19,9 @@ async function getGeneralCookieSecurityInfo(domain) {
 
 Provide general information about cookie security attributes in JSON format:
 {
-  "httpOnly_importance": "Why HttpOnly is important and when it should be enabled",
-  "secure_importance": "Why Secure flag is important and when it should be enabled",
-  "sameSite_importance": "Why SameSite is important and different values (Strict/Lax/None)",
+  "httpOnly_importance": "Why HttpOnly is important and when it should be enabled , Describe it in short",
+  "secure_importance": "Why Secure flag is important and when it should be enabled , Describe it in short",
+  "sameSite_importance": "Why SameSite is important and different values (Strict/Lax/None) , Describe it in short",
   "common_legitimate_cookies": ["List of common cookie names that are typically legitimate"],
   "red_flags": ["Cookie patterns or combinations that indicate security issues"],
   "general_recommendation": "General security best practices for cookies"
@@ -91,27 +91,81 @@ async function aiExplainReport(cookies, averageScore) {
 
     const url = `https://openrouter.ai/api/v1/chat/completions`;
 
-    const safeList = cookies.map(c => ({
-        name: c.name,
-        category: c.category,
-        score: c.security_score,
-        HttpOnly: c.HttpOnly,
-        Secure: c.Secure,
-        SameSite: c.SameSite
-    }));
+    const safeList = cookies.map(c => {
+        // Build missing flags info with requirement status
+        const missingFlags = [];
+        const justifications = [];
+        
+        if (!c.HttpOnly) {
+            if (c.flagRequirements?.requireHttpOnly) {
+                missingFlags.push('HttpOnly (REQUIRED)');
+                justifications.push('HttpOnly needed: ' + c.flagRequirements.reasoning.httpOnly);
+            } else {
+                missingFlags.push('HttpOnly (not needed)');
+                justifications.push('HttpOnly not needed: ' + c.flagRequirements.reasoning.httpOnly);
+            }
+        }
+        
+        if (!c.Secure) {
+            if (c.flagRequirements?.requireSecure) {
+                missingFlags.push('Secure (REQUIRED)');
+                justifications.push('Secure needed: ' + c.flagRequirements.reasoning.secure);
+            } else {
+                missingFlags.push('Secure (not needed)');
+                justifications.push('Secure not needed: ' + c.flagRequirements.reasoning.secure);
+            }
+        }
+        
+        if (!c.SameSite) {
+            if (c.flagRequirements?.requireSameSite) {
+                missingFlags.push('SameSite (REQUIRED)');
+                justifications.push('SameSite needed: ' + c.flagRequirements.reasoning.sameSite);
+            } else {
+                missingFlags.push('SameSite (not needed)');
+                justifications.push('SameSite not needed: ' + c.flagRequirements.reasoning.sameSite);
+            }
+        }
+
+        return {
+            name: c.name,
+            category: c.category,
+            score: c.security_score,
+            HttpOnly: c.HttpOnly,
+            Secure: c.Secure,
+            SameSite: c.SameSite,
+            missingFlags: missingFlags.length > 0 ? missingFlags : ['None'],
+            justifications: justifications,
+            isJustified: c.flagRequirements?.isJustified || false
+        };
+    });
 
     const prompt = `
-STRICT OUTPUT RULES:
-- Each bullet MUST be on its own line.
-- Format: • cookie_name → short explanation.
-- Max 20 words per bullet.
-- No paragraphs. No merging lines.
+OUTPUT FORMAT (PROFESSIONAL STYLE):
+- NO markdown symbols (no #, *, >, _, etc)
+- NO bullet points (•)
+- Use clean, professional sentences
+- Each cookie gets: name | category | status | brief explanation
+- Use pipes (|) or dashes (-) as separators
+- End with a professional summary line
+
+DIFFERENCE RULES:
+- "NOT NEEDED" = Flag genuinely not required for this type (e.g., analytics no HttpOnly needed)
+- "INTENTIONALLY OMITTED" = Flag could help security but site omitted it on purpose (e.g., Google omits SameSite for tracking)
+- ALWAYS explain WHICH case it is.
+
+PROFESSIONAL FORMAT EXAMPLE:
+_ga | Analytics UUID | Missing SameSite (INTENTIONAL) | SameSite omitted to enable Google cross-site tracking.
+PREF | Preference | Missing HttpOnly, SameSite (NOT NEEDED) | Non-sensitive data; flags not required.
+
+---
+Average Score: ${averageScore}/10
+Summary: [One line professional summary explaining overall security posture]
 
 TASK:
-Explain each cookie: purpose, risks, missing flags.
+Format YouTube or target domain cookies professionally. No markdown. Clean output.
 
-Average score: ${averageScore}
-Cookies: ${JSON.stringify(safeList)}
+Cookies:
+${JSON.stringify(safeList, null, 2)}
 `;
 
     const payload = {
