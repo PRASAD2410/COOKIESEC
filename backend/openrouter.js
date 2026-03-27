@@ -140,31 +140,43 @@ async function aiExplainReport(cookies, averageScore) {
     });
 
     const prompt = `
-OUTPUT FORMAT (PROFESSIONAL STYLE):
-- NO markdown symbols (no #, *, >, _, etc)
-- NO bullet points (•)
-- Use clean, professional sentences
-- Each cookie gets: name | category | status | brief explanation
-- Use pipes (|) or dashes (-) as separators
-- End with a professional summary line
+OUTPUT FORMAT (CLEAN & CLEAR):
+- NO title, NO header, NO domain names
+- Use dashes (=========) to separate cookies
+- Simple pipe format: cookie_name | category | flags | explanation
+- NO blank lines, NO spacing tricks, just DASHES between cookies
 
-DIFFERENCE RULES:
-- "NOT NEEDED" = Flag genuinely not required for this type (e.g., analytics no HttpOnly needed)
-- "INTENTIONALLY OMITTED" = Flag could help security but site omitted it on purpose (e.g., Google omits SameSite for tracking)
-- ALWAYS explain WHICH case it is.
+FLAG RULES:
+- REQUIRED + missing = "(SECURITY RISK) - explanation"
+- NOT NEEDED = "(NOT NEEDED) - explanation"  
+- INTENTIONAL = "(INTENTIONAL TRADE-OFF) - explanation"
 
-PROFESSIONAL FORMAT EXAMPLE:
-_ga | Analytics UUID | Missing SameSite (INTENTIONAL) | SameSite omitted to enable Google cross-site tracking.
-PREF | Preference | Missing HttpOnly, SameSite (NOT NEEDED) | Non-sensitive data; flags not required.
+EXACT FORMAT:
+_ga | Analytics Cookie | Missing HttpOnly (NOT NEEDED), Secure (NOT NEEDED), SameSite (INTENTIONAL TRADE-OFF) | HttpOnly not required for persistent UUID. Secure not needed. SameSite omitted for cross-site tracking.
+=========================================================
+
+_gid | Analytics Cookie | Missing HttpOnly (NOT NEEDED), Secure (NOT NEEDED), SameSite (INTENTIONAL TRADE-OFF) | HttpOnly not required for daily UUID. Secure not needed. SameSite omitted for cross-site tracking.
+=========================================================
+
+__Secure-ROLLOUT_TOKEN | Security / Auth Cookie | Missing SameSite (SECURITY RISK) | Auth tokens require SameSite to prevent CSRF attacks. Immediate fix needed.
+=========================================================
+
+_ga_SGN3R8Y922 | Analytics Cookie | Missing HttpOnly (NOT NEEDED), Secure (NOT NEEDED), SameSite (INTENTIONAL TRADE-OFF) | HttpOnly not required for GA4 session. Secure not needed. SameSite omitted for tracking.
+=========================================================
 
 ---
 Average Score: ${averageScore}/10
-Summary: [One line professional summary explaining overall security posture]
+Summary: [One-line professional analysis]
 
-TASK:
-Format YouTube or target domain cookies professionally. No markdown. Clean output.
+CRITICAL:
+1. Start with first cookie (no header)
+2. After EVERY cookie, add a line of equals signs (=========================================================)
+3. Format stays: cookie_name | category | flags | explanation
+4. NO blank lines between cookies, just the dashes
+5. Ends with Average Score line
+6. This makes PDF and UI clean and readable
 
-Cookies:
+Cookies to analyze:
 ${JSON.stringify(safeList, null, 2)}
 `;
 

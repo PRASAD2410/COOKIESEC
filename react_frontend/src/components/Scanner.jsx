@@ -144,7 +144,7 @@ function Scanner() {
     AI Security Summary
   </h2>
 
-  <div className="mt-4 text-sm leading-7 text-slate-200 overflow-y-auto flex-1 pr-3 custom-scroll">
+  <div className="mt-4 text-sm leading-relaxed text-slate-200 overflow-y-auto flex-1 pr-3 custom-scroll font-mono whitespace-pre-wrap break-words">
     {data.ai_summary || "No summary available."}
   </div>
 
